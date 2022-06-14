@@ -1,0 +1,75 @@
+# [s02] Simple Apache Storm assemble
+# If m1 processor is used, add services.<name>.platform: linux/x86_64
+version: '3.8'
+
+networks:
+  storm_network:
+    driver: bridge
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    hostname: zookeeper
+    container_name: s02-zookeeper
+    restart: unless-stopped
+    ports:
+      - "2181:2181"
+      - "31000:31000"
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_CLIENT_PORT: 2181
+      KAFKA_JMX_HOSTNAME: "localhost"
+      KAFKA_JMX_PORT: 31000
+    networks:
+      storm_network:
+        aliases:
+          - zookeeper
+
+  nimbus:
+    image: storm
+    hostname: nimbus
+    container_name: s02-nimbus
+    restart: unless-stopped
+    ports:
+      - "6627:6627"
+    volumes:
+      - ./nimbus/conf/:/conf/
+    command: storm nimbus
+    depends_on:
+      - zookeeper
+    networks:
+      storm_network:
+        aliases:
+          - nimbus
+
+  supervisor:
+    image: storm
+    hostname: supervisor
+    container_name: s02-supervisor
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./supervisor/conf/:/conf/
+    command: bash -c "(storm logviewer &) && (storm supervisor)"
+    depends_on:
+      - nimbus
+      - zookeeper
+    networks:
+      storm_network:
+        aliases:
+          - supervisor
+
+  supervisor-ui:
+    image: storm
+    hostname: supervisor-ui
+    container_name: s02-supervisor-ui
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+    command: storm ui
+    networks:
+      storm_network:
+        aliases:
+          - supervisor-ui
