@@ -1,0 +1,8 @@
+storm.zookeeper.servers: [zookeeper]
+nimbus.seeds: [nimbus]
+storm.log.dir: "/logs"
+storm.local.dir: "/data"
+
+logviewer.port: 8000
+worker.childopts: "-Xmx%HEAP-MEM%m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=artifacts/heapdump" 
+worker.gc.childopts: ""
